@@ -100,6 +100,18 @@ public class DataRepository {
                 .findFirst();
     }
 
+    public List<Person> getPersonsByLastName(String lastName) {
+        return persons.stream()
+                .filter(p -> p.getLastName() != null && p.getLastName().equalsIgnoreCase(lastName))
+                .collect(Collectors.toList());
+    }
+
+    public List<Person> getPersonsByCity(String city) {
+        return persons.stream()
+                .filter(p -> p.getCity() != null && p.getCity().equalsIgnoreCase(city))
+                .collect(Collectors.toList());
+    }
+
 }
 
 
