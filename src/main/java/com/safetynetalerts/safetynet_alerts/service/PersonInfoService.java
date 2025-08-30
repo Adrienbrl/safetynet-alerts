@@ -10,15 +10,31 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Service gérant l'endpoint "/personInfo".
+ *
+ * Fournit les informations détaillées des personnes partageant un même nom de famille.
+ */
 @Service
 public class PersonInfoService {
 
     private final DataRepository dataRepository;
 
+    /**
+     * Constructeur avec injection de dépendances.
+     *
+     * @param dataRepository dépôt de données utilisé pour récupérer les informations.
+     */
     public PersonInfoService(DataRepository dataRepository) {
         this.dataRepository = dataRepository;
     }
 
+    /**
+     * Récupère les informations des personnes pour un nom de famille donné.
+     *
+     * @param lastName nom de famille à rechercher.
+     * @return liste des {@link PersonInfoDTO} correspondants (liste vide si entrée invalide).
+     */
     public List<PersonInfoDTO> getPersonsInfoByLastName(String lastName) {
         if (lastName == null || lastName.isBlank()) {
             return List.of();

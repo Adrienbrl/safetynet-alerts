@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
  *
  * Fournit la liste des enfants habitant à une adresse donnée ainsi que les autres membres de son foyer.
  */
-
 @Service
 public class ChildAlertService {
 

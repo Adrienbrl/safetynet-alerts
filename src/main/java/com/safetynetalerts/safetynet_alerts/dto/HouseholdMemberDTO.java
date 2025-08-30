@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
  *
  * Utilisé pour l'endpoint 'childAlert/' afin de fournir la liste des membres du foyer d'un enfant.
  */
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

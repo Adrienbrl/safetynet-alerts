@@ -9,7 +9,6 @@ import java.util.List;
 /**
  * Représente les informations d'un enfant ainsi que les autres membres de son foyer.
  */
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

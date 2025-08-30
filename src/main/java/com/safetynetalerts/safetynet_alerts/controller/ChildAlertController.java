@@ -11,7 +11,6 @@ import java.util.List;
  * Contrôleur REST gérant les requêtes pour l'endpoint "/childAlert".
  * Il permet de récupérer la liste des enfants et des autres membres du foyer vivant à une adresse donnée.
  */
-
 @RestController
 @RequestMapping("/childAlert")
 public class ChildAlertController {

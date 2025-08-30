@@ -13,15 +13,32 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Service gérant l'endpoint "/fire".
+ *
+ * Fournit les informations d'une adresse : caserne couvrante et liste des résidents
+ * (âge, téléphone, médicaments, allergies).
+ */
 @Service
 public class FireService {
 
     private final DataRepository dataRepository;
 
+    /**
+     * Constructeur avec injection de dépendances.
+     *
+     * @param dataRepository dépôt de données utilisé pour récupérer les informations.
+     */
     public FireService(DataRepository dataRepository) {
         this.dataRepository = dataRepository;
     }
 
+    /**
+     * Récupère les informations « fire » pour une adresse donnée.
+     *
+     * @param address adresse à rechercher.
+     * @return un {@link Optional} contenant la réponse si la couverture est trouvée.
+     */
     public Optional<FireAddressResponseDTO> getFireInfoByAddress(String address) {
         if (address == null || address.isBlank()) {
             return Optional.empty();

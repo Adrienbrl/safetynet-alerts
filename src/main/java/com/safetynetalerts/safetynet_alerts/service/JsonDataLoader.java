@@ -11,7 +11,6 @@ import java.io.InputStream;
 /**
  * Service permettant de charger les données depuis un fichier JSON au démarrage de l'application.
  */
-
 @Service
 public class JsonDataLoader {
 

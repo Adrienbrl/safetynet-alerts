@@ -18,7 +18,6 @@ import java.util.Optional;
  * Permet de récupérer les personnes couvertes par une caserne spécifique
  * ainsi que le nombre d'adultes et d'enfants.
  */
-
 @Service
 public class FirestationService {
 

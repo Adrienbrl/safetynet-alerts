@@ -7,6 +7,7 @@ import com.safetynetalerts.safetynet_alerts.service.JsonDataLoader;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Repository;
 import java.util.stream.Collectors;
+import java.util.function.Consumer;
 
 import java.util.*;
 
@@ -93,6 +94,12 @@ public class DataRepository {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Recherche le numéro de caserne couvrant une adresse.
+     *
+     * @param address adresse exacte à rechercher.
+     * @return un {@link Optional} contenant le numéro de la caserne s’il est trouvé.
+     */
     public Optional<Integer> getStationNumberByAddress(String address) {
         return firestations.stream()
                 .filter(fs -> fs.getAddress().equals(address))
@@ -100,16 +107,115 @@ public class DataRepository {
                 .findFirst();
     }
 
+    /**
+     * Récupère toutes les personnes portant un nom de famille donné.
+     *
+     * @param lastName nom de famille recherché (insensible à la casse).
+     * @return liste des personnes correspondantes.
+     */
     public List<Person> getPersonsByLastName(String lastName) {
         return persons.stream()
                 .filter(p -> p.getLastName() != null && p.getLastName().equalsIgnoreCase(lastName))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Récupère toutes les personnes d’une ville.
+     *
+     * @param city nom de la ville (insensible à la casse).
+     * @return liste des personnes habitant la ville.
+     */
     public List<Person> getPersonsByCity(String city) {
         return persons.stream()
                 .filter(p -> p.getCity() != null && p.getCity().equalsIgnoreCase(city))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Construit une clé normalisée « first|last » pour identifier une personne.
+     *
+     * @param firstName prénom (peut être {@code null}).
+     * @param lastName nom (peut être {@code null}).
+     * @return clé concaténée au format {@code prenom|nom}.
+     */
+    private String key(String firstName, String lastName) {
+        return (firstName == null ? "" : firstName.trim().toLowerCase()) + "|" +
+                (lastName == null ? "" : lastName.trim().toLowerCase());
+    }
+
+    /**
+     * Recherche une personne par prénom et nom à l’aide de la clé normalisée.
+     *
+     * @param firstName prénom de la personne.
+     * @param lastName nom de la personne.
+     * @return un {@link Optional} contenant la personne si elle est trouvée.
+     */
+    public Optional<Person> findPersonByFirstAndLastName(String firstName, String lastName) {
+        String k = key(firstName, lastName);
+        return persons.stream()
+                .filter(p -> key(p.getFirstName(), p.getLastName()).equals(k))
+                .findFirst();
+    }
+
+    /**
+     * Indique si une personne existe déjà dans le référentiel.
+     *
+     * @param firstName prénom de la personne.
+     * @param lastName nom de la personne.
+     * @return {@code true} si une correspondance est trouvée, sinon {@code false}.
+     */
+    public boolean personExists(String firstName, String lastName) {
+        return findPersonByFirstAndLastName(firstName, lastName).isPresent();
+    }
+
+    /**
+     * Ajoute une nouvelle personne au référentiel.
+     *
+     * @param p personne à ajouter.
+     * @return la personne ajoutée.
+     * @throws IllegalArgumentException si {@code p} est {@code null}.
+     * @throws IllegalStateException si une personne avec le même prénom et nom existe déjà.
+     */
+    public Person addPerson(Person p) {
+        if (p == null) throw new IllegalArgumentException("Person cannot be null");
+        if (personExists(p.getFirstName(), p.getLastName())) {
+            throw new IllegalStateException("Person already exists");
+        }
+        persons.add(p);
+        return p;
+    }
+
+    /**
+     * Met à jour une personne existante identifiée par prénom et nom.
+     *
+     * <p>Méthode synchronisée.</p>
+     *
+     * @param firstName prénom de la personne à mettre à jour.
+     * @param lastName nom de la personne à mettre à jour.
+     * @param updater action appliquant les modifications sur l’entité trouvée.
+     * @return la personne après mise à jour.
+     * @throws java.util.NoSuchElementException si la personne n’existe pas.
+     */
+    public synchronized Person updatePerson(String firstName, String lastName, Consumer<Person> updater) {
+        Person current = findPersonByFirstAndLastName(firstName, lastName)
+                .orElseThrow(() -> new NoSuchElementException("Person not found"));
+        updater.accept(current);
+        return current;
+    }
+
+    /**
+     * Supprime une personne identifiée par prénom et nom.
+     *
+     * <p>Méthode synchronisée.</p>
+     *
+     * @param firstName prénom de la personne à supprimer.
+     * @param lastName nom de la personne à supprimer.
+     * @return {@code true} si au moins une entrée a été supprimée, sinon {@code false}.
+     */
+    public synchronized boolean deletePerson(String firstName, String lastName) {
+        return persons.removeIf(p ->
+                key(p.getFirstName(), p.getLastName()).equals(key(firstName, lastName))
+        );
     }
 
 }

@@ -17,15 +17,31 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Service gérant l'endpoint "/flood/stations".
+ *
+ * Fournit les foyers (households) couverts par un ensemble de casernes.
+ */
 @Service
 public class FloodService {
 
     private final DataRepository dataRepository;
 
+    /**
+     * Constructeur avec injection de dépendances.
+     *
+     * @param dataRepository dépôt de données utilisé pour récupérer les informations.
+     */
     public FloodService(DataRepository dataRepository) {
         this.dataRepository = dataRepository;
     }
 
+    /**
+     * Récupère les foyers couverts par les casernes spécifiées.
+     *
+     * @param stations identifiants des casernes.
+     * @return un {@link FloodStationsResponseDTO} contenant les foyers par adresse.
+     */
     public FloodStationsResponseDTO getHouseholdsByStations(List<Integer> stations) {
         Set<String> addresses = stations.stream()
                 .flatMap(station -> dataRepository.getAddressesByStationNumber(station).stream())

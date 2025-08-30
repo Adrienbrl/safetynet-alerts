@@ -11,7 +11,6 @@ import java.util.List;
  * Cette classe contient la liste des personnes couvertes par une caserne ainsi
  * que le nombre d'adultes et d'enfants.
  */
-
 @Data
 @AllArgsConstructor
 public class FirestationCoverageDTO {

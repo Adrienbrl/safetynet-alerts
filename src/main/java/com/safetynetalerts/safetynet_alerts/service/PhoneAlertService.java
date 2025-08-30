@@ -10,7 +10,6 @@ import java.util.Objects;
 /**
  * Service récupérant les numéros de téléphone des personnes couvertes par une caserne spécifique.
  */
-
 @Service
 public class PhoneAlertService {
 

@@ -14,7 +14,6 @@ import java.util.List;
  *
  * DataContainer regroupe la liste des personnes, casernes et dossiers médicaux.
  */
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

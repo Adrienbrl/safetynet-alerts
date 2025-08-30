@@ -6,7 +6,6 @@ import lombok.Data;
 /**
  * Représente une personne couverte par une caserne de pompiers.
  */
-
 @Data
 @AllArgsConstructor
 public class CoveredPersonDTO {

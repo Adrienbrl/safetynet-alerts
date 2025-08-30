@@ -11,7 +11,6 @@ import java.util.List;
  * Contrôleur REST gérant les requêtes pour l'endpoint "/phoneAlert".
  * Il permet de récupérer les numéros de téléphone des habitants couverts par une caserne donnée.
  */
-
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 public class PhoneAlertController {

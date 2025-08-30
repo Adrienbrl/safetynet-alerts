@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
  * Contrôleur REST gérant les requêtes pour l'endpoint "/firestation".
  * Il permet de récupérer la liste des personnes couvertes par une caserne donnée ainsi que le nombre d'adultes et d'enfants.
  */
-
 @RestController
 @RequestMapping("/firestation")
 public class FirestationController {
