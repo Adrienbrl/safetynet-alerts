@@ -218,6 +218,81 @@ public class DataRepository {
         );
     }
 
+    private String addrKey(String address) {
+        return address == null ? "" : address.trim().toLowerCase();
+    }
+
+    public Optional<Firestation> findFirestationByAddress(String address) {
+        String k = addrKey(address);
+        return firestations.stream()
+                .filter(f -> addrKey(f.getAddress()).equals(k))
+                .findFirst();
+    }
+
+    public boolean firestationExists(String address) {
+        return findFirestationByAddress(address).isPresent();
+    }
+
+    public Firestation addFirestation(Firestation f) {
+        if (f == null) throw new IllegalArgumentException("Firestation cannot be null");
+        if (firestationExists(f.getAddress())) {
+            throw new IllegalStateException("Mapping for address already exists");
+        }
+        firestations.add(f);
+        return f;
+    }
+
+    public synchronized Firestation updateFirestation(String address, java.util.function.Consumer<Firestation> updater) {
+        Firestation current = findFirestationByAddress(address)
+                .orElseThrow(() -> new NoSuchElementException("Mapping not found"));
+        updater.accept(current);
+        return current;
+    }
+
+    public synchronized boolean deleteFirestationByAddress(String address) {
+        String k = addrKey(address);
+        return firestations.removeIf(f -> addrKey(f.getAddress()).equals(k));
+    }
+
+    public synchronized int deleteFirestationsByStation(int station) {
+        int before = firestations.size();
+        firestations.removeIf(f -> f.getStation() == station);
+        return before - firestations.size();
+    }
+
+    public Optional<MedicalRecord> findMedicalRecordByFirstAndLastName(String firstName, String lastName) {
+        String k = key(firstName, lastName);
+        return medicalRecords.stream()
+                .filter(mr -> key(mr.getFirstName(), mr.getLastName()).equals(k))
+                .findFirst();
+    }
+
+    public boolean medicalRecordExists(String firstName, String lastName) {
+        return findMedicalRecordByFirstAndLastName(firstName, lastName).isPresent();
+    }
+
+    public MedicalRecord addMedicalRecord(MedicalRecord mr) {
+        if (mr == null) throw new IllegalArgumentException("MedicalRecord cannot be null");
+        if (medicalRecordExists(mr.getFirstName(), mr.getLastName())) {
+            throw new IllegalStateException("Medical record already exists");
+        }
+        medicalRecords.add(mr);
+        return mr;
+    }
+
+    public synchronized MedicalRecord updateMedicalRecord(
+            String firstName, String lastName, java.util.function.Consumer<MedicalRecord> updater) {
+        MedicalRecord current = findMedicalRecordByFirstAndLastName(firstName, lastName)
+                .orElseThrow(() -> new NoSuchElementException("Medical record not found"));
+        updater.accept(current);
+        return current;
+    }
+
+    public synchronized boolean deleteMedicalRecord(String firstName, String lastName) {
+        String k = key(firstName, lastName);
+        return medicalRecords.removeIf(mr -> key(mr.getFirstName(), mr.getLastName()).equals(k));
+    }
+
 }
 
 
