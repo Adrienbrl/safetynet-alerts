@@ -218,10 +218,28 @@ public class DataRepository {
         );
     }
 
+    /**
+     * Normalise une adresse pour comparaison insensible à la casse et aux espaces.
+     *
+     * <p>Renvoie une chaîne en minuscules, sans espaces en début/fin. Renvoie
+     * une chaîne vide si {@code address} est {@code null} pour éviter les NPE.</p>
+     *
+     * @param address adresse en entrée (peut être {@code null})
+     * @return adresse normalisée, jamais {@code null}
+     */
     private String addrKey(String address) {
         return address == null ? "" : address.trim().toLowerCase();
     }
 
+    /**
+     * Recherche l'association {@code Firestation} correspondant à une adresse.
+     *
+     * <p>La comparaison est effectuée sur l'adresse normalisée (voir {@link #addrKey(String)})
+     * pour être robuste aux variations de casse et d'espaces.</p>
+     *
+     * @param address adresse recherchée
+     * @return un {@code Optional} contenant la première correspondance, ou vide si aucune
+     */
     public Optional<Firestation> findFirestationByAddress(String address) {
         String k = addrKey(address);
         return firestations.stream()
@@ -229,10 +247,28 @@ public class DataRepository {
                 .findFirst();
     }
 
+    /**
+     * Indique si une association existe déjà pour l'adresse donnée.
+     *
+     * @param address adresse à tester
+     * @return {@code true} si une association existe, {@code false} sinon
+     */
     public boolean firestationExists(String address) {
         return findFirestationByAddress(address).isPresent();
     }
 
+    /**
+     * Ajoute une nouvelle association {@code Firestation}.
+     *
+     * <p>Vérifie que l'objet n'est pas {@code null} et qu'il n'existe pas déjà
+     * une association pour l'adresse indiquée. La vérification de doublon se fait
+     * via {@link #firestationExists(String)}.</p>
+     *
+     * @param f association à ajouter
+     * @return la même instance que celle ajoutée
+     * @throws IllegalArgumentException si {@code f} est {@code null}
+     * @throws IllegalStateException si une association existe déjà pour l'adresse
+     */
     public Firestation addFirestation(Firestation f) {
         if (f == null) throw new IllegalArgumentException("Firestation cannot be null");
         if (firestationExists(f.getAddress())) {
@@ -242,6 +278,21 @@ public class DataRepository {
         return f;
     }
 
+    /**
+     * Met à jour <em>en place</em> l'association {@code Firestation} ciblée par son adresse.
+     *
+     * <p><b>Concurrence :</b> la méthode est {@code synchronized} pour sérialiser l'accès
+     * en écriture sur la collection sous-jacente.</p>
+     *
+     * <p><b>Contrat de l'updater :</b> le {@link java.util.function.Consumer} reçu doit
+     * modifier l'instance existante (muter ses champs) et ne pas tenter de la remplacer
+     * par une nouvelle instance.</p>
+     *
+     * @param address adresse de l'association à mettre à jour
+     * @param updater fonction appliquant les modifications sur l'objet trouvé
+     * @return l'objet mis à jour (même référence)
+     * @throws NoSuchElementException si aucune association n'est trouvée pour l'adresse
+     */
     public synchronized Firestation updateFirestation(String address, java.util.function.Consumer<Firestation> updater) {
         Firestation current = findFirestationByAddress(address)
                 .orElseThrow(() -> new NoSuchElementException("Mapping not found"));
@@ -249,17 +300,41 @@ public class DataRepository {
         return current;
     }
 
+    /**
+     * Supprime l'association {@code Firestation} correspondant à l'adresse fournie.
+     *
+     * <p>La comparaison d'adresse est normalisée via {@link #addrKey(String)}.</p>
+     *
+     * @param address adresse cible
+     * @return {@code true} si au moins une association a été supprimée, {@code false} sinon
+     */
     public synchronized boolean deleteFirestationByAddress(String address) {
         String k = addrKey(address);
         return firestations.removeIf(f -> addrKey(f.getAddress()).equals(k));
     }
 
+    /**
+     * Supprime toutes les associations liées à un numéro de station.
+     *
+     * @param station numéro de station
+     * @return le nombre d’associations supprimées (>= 0)
+     */
     public synchronized int deleteFirestationsByStation(int station) {
         int before = firestations.size();
         firestations.removeIf(f -> f.getStation() == station);
         return before - firestations.size();
     }
 
+    /**
+     * Recherche un dossier médical par prénom + nom.
+     *
+     * <p>Utilise la clé normalisée produite par {@code key(firstName, lastName)}
+     * pour une comparaison robuste à la casse/espaces selon ton implémentation.</p>
+     *
+     * @param firstName prénom
+     * @param lastName  nom
+     * @return un {@code Optional} contenant la première correspondance, ou vide
+     */
     public Optional<MedicalRecord> findMedicalRecordByFirstAndLastName(String firstName, String lastName) {
         String k = key(firstName, lastName);
         return medicalRecords.stream()
@@ -267,10 +342,25 @@ public class DataRepository {
                 .findFirst();
     }
 
+    /**
+     * Indique si un dossier médical existe pour la personne donnée.
+     *
+     * @param firstName prénom
+     * @param lastName  nom
+     * @return {@code true} si un dossier existe, {@code false} sinon
+     */
     public boolean medicalRecordExists(String firstName, String lastName) {
         return findMedicalRecordByFirstAndLastName(firstName, lastName).isPresent();
     }
 
+    /**
+     * Ajoute un nouveau dossier médical.
+     *
+     * @param mr dossier à ajouter
+     * @return l’instance ajoutée (même référence)
+     * @throws IllegalArgumentException si {@code mr} est {@code null}
+     * @throws IllegalStateException si un dossier existe déjà pour {firstName,lastName}
+     */
     public MedicalRecord addMedicalRecord(MedicalRecord mr) {
         if (mr == null) throw new IllegalArgumentException("MedicalRecord cannot be null");
         if (medicalRecordExists(mr.getFirstName(), mr.getLastName())) {
@@ -280,6 +370,19 @@ public class DataRepository {
         return mr;
     }
 
+    /**
+     * Met à jour <em>en place</em> le dossier médical identifié par {firstName,lastName}.
+     *
+     * <p><b>Concurrence :</b> méthode {@code synchronized} (écritures sérialisées).</p>
+     * <p><b>Contrat de l'updater :</b> le {@link java.util.function.Consumer} doit muter
+     * l’instance existante (ne pas la remplacer).</p>
+     *
+     * @param firstName prénom
+     * @param lastName  nom
+     * @param updater   fonction appliquant les modifications sur l'objet trouvé
+     * @return l'objet mis à jour (même référence)
+     * @throws NoSuchElementException si aucun dossier n'est trouvé
+     */
     public synchronized MedicalRecord updateMedicalRecord(
             String firstName, String lastName, java.util.function.Consumer<MedicalRecord> updater) {
         MedicalRecord current = findMedicalRecordByFirstAndLastName(firstName, lastName)
@@ -288,6 +391,13 @@ public class DataRepository {
         return current;
     }
 
+    /**
+     * Supprime le dossier médical de la personne {firstName,lastName}.
+     *
+     * @param firstName prénom
+     * @param lastName  nom
+     * @return {@code true} si au moins un dossier a été supprimé, {@code false} sinon
+     */
     public synchronized boolean deleteMedicalRecord(String firstName, String lastName) {
         String k = key(firstName, lastName);
         return medicalRecords.removeIf(mr -> key(mr.getFirstName(), mr.getLastName()).equals(k));

@@ -9,7 +9,6 @@ import java.util.List;
 /**
  * Représente un dossier médical d'une personne.
  */
-
 @Data // Génère automatiquement getters, setters, equals, hashCode et toString
 @NoArgsConstructor // Génère un constructeur sans argument.
 @AllArgsConstructor // Génère un constructeur avec tous les arguments.

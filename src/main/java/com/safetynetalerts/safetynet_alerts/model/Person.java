@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 /**
  * Représente une personne avec ses informations personnelles.
  */
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

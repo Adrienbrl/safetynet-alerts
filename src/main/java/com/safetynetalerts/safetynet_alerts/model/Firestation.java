@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 /**
  * Représente une caserne de pompiers avec ses infos.
  */
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
