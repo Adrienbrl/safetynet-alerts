@@ -22,8 +22,11 @@ public class DateUtils {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         // Convertit la chaîne de date en objet LocalDate en utilisant le format défini
         LocalDate birthDate = LocalDate.parse(birthDateString, formatter);
-        // Calcule la différence en années entre la date de naissance et la date actuelle
-        return Period.between(birthDate, LocalDate.now()).getYears();
+        LocalDate today = LocalDate.now();
+        if (birthDate.isAfter(today)) {
+            throw new IllegalArgumentException("Birth date cannot be in the future");
+        }
+        return java.time.Period.between(birthDate, today).getYears();
     }
 }
 
