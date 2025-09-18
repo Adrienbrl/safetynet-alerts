@@ -111,13 +111,10 @@
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.12</version>
 				<executions>
-					<!-- injecte l'agent -->
 					<execution>
 						<id>prepare-agent</id>
 						<goals><goal>prepare-agent</goal></goals>
 					</execution>
-
-					<!-- rapport HTML FILTRÉ (sans dto/model) -->
 					<execution>
 						<id>report</id>
 						<phase>verify</phase>
@@ -129,8 +126,6 @@
 							</excludes>
 						</configuration>
 					</execution>
-
-					<!-- seuil appliqué au même périmètre -->
 					<execution>
 						<id>check</id>
 						<phase>verify</phase>
@@ -144,7 +139,6 @@
 										<exclude>com/safetynetalerts/safetynet_alerts/model/**</exclude>
 									</excludes>
 									<limits>
-										<!-- LINE est souvent plus stable que INSTRUCTION -->
 										<limit>
 											<counter>LINE</counter>
 											<value>COVEREDRATIO</value>
@@ -157,7 +151,38 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>3.12.1</version>
+				<configuration>
+					<generateSitemap>true</generateSitemap>
+					<relativizeDecorationLinks>true</relativizeDecorationLinks>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.skins</groupId>
+						<artifactId>maven-fluido-skin</artifactId>
+						<version>1.11.1</version>
+					</dependency>
+				</dependencies>
+			</plugin>
 		</plugins>
 	</build>
-
+	<reporting>
+		<plugins>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-surefire-report-plugin</artifactId>
+			<version>3.5.3</version>
+			<reportSets>
+				<reportSet>
+					<reports>
+						<report>report</report>
+					</reports>
+				</reportSet>
+			</reportSets>
+		</plugin>
+		</plugins>
+	</reporting>
 </project>
