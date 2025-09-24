@@ -5,12 +5,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 
 /**
  * Contrôleur REST gérant les requêtes pour l'endpoint "/phoneAlert".
  * Il permet de récupérer les numéros de téléphone des habitants couverts par une caserne donnée.
  */
+@Slf4j
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 public class PhoneAlertController {
@@ -36,14 +39,33 @@ public class PhoneAlertController {
      */
     @GetMapping("/phoneAlert")
     public ResponseEntity<List<String>> phoneAlert(@RequestParam("firestation") int station) {
-        // Vérifie si le numéro de station est valide
+        // --- Requête entrante (INFO)
+        log.info("GET /phoneAlert - request received | station={}", station);
+
+        // 400 si station invalide
         if (station <= 0) {
+            log.error("GET /phoneAlert - bad request | reason=invalid_station (<=0)");
             return ResponseEntity.badRequest().build();
         }
-        // Récupère les numéros de téléphone liés à cette caserne
-        List<String> phones = phoneAlertService.getPhonesByStation(station);
-        // Retourne la liste des téléphones en réponse JSON
-        return ResponseEntity.ok(phones);
+
+        try {
+            // Appel service
+            List<String> phones = phoneAlertService.getPhonesByStation(station);
+
+            // --- Réponse sortante (INFO)
+            log.info("GET /phoneAlert - success | station={} | items={}", station, phones.size());
+
+            // --- Détails (DEBUG)
+            if (log.isDebugEnabled()) {
+                log.debug("GET /phoneAlert - response payload: {}", phones);
+            }
+
+            return ResponseEntity.ok(phones);
+        } catch (Exception ex) {
+            // --- Erreur/exception (ERROR)
+            log.error("GET /phoneAlert - failure | station={} | error={}", station, ex.toString(), ex);
+            throw ex; // re-propage : aucun changement de comportement
+        }
     }
 }
 

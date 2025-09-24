@@ -3,12 +3,14 @@ package com.safetynetalerts.safetynet_alerts.controller;
 import com.safetynetalerts.safetynet_alerts.service.CommunityEmailService;
 import org.springframework.web.bind.annotation.*;
 
+import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 /**
  * Contrôleur REST gérant les requêtes pour l'endpoint "/communityEmail".
  * Il permet de récupérer la liste des adresses e-mail des habitants d'une ville donnée.
  */
+@Slf4j
 @RestController
 @RequestMapping(value = "/communityEmail", produces = "application/json")
 public class CommunityEmailController {
@@ -32,7 +34,18 @@ public class CommunityEmailController {
      * @return liste des adresses e-mail
      */
     @GetMapping
-    public List<String> getCommunityEmails(@RequestParam String city) {
-        return communityEmailService.getEmailsByCity(city);
+    public List<String> getEmailsByCity(@RequestParam String city) {
+        log.info("GET /communityEmail - request received | city='{}'", city);
+        try {
+            List<String> result = communityEmailService.getEmailsByCity(city);
+            log.info("GET /communityEmail - success | city='{}' | items={}", city, result.size());
+            if (log.isDebugEnabled()) {
+                log.debug("GET /communityEmail - response payload: {}", result);
+            }
+            return result;
+        } catch (Exception ex) {
+            log.error("GET /communityEmail - failure | city='{}' | error={}", city, ex.toString(), ex);
+            throw ex;
+        }
     }
 }

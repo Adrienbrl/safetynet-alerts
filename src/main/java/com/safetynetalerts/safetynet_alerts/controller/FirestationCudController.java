@@ -9,11 +9,14 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.NoSuchElementException;
 
 /**
  * Contrôleur REST responsable des opérations d'écriture (Create/Update/Delete)
  */
+@Slf4j
 @RestController
 @RequestMapping("/firestation")
 @RequiredArgsConstructor
@@ -32,11 +35,21 @@ public class FirestationCudController {
      */
     @PostMapping
     public ResponseEntity<Firestation> create(@Valid @RequestBody FirestationCreateUpdateDTO dto) {
+        log.info("POST /firestation - request received | payload={}", dto);
         try {
             Firestation created = service.create(dto);
+            log.info("POST /firestation - success | address='{}' | station={}",
+                    created.getAddress(), created.getStation());
+            if (log.isDebugEnabled()) {
+                log.debug("POST /firestation - response payload: {}", created);
+            }
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (IllegalStateException e) {
+            log.error("POST /firestation - conflict | reason={}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+        } catch (Exception ex) {
+            log.error("POST /firestation - failure | error={}", ex.toString(), ex);
+            throw ex;
         }
     }
 
@@ -49,10 +62,21 @@ public class FirestationCudController {
      */
     @PutMapping
     public Firestation update(@Valid @RequestBody FirestationCreateUpdateDTO dto) {
+        log.info("PUT /firestation - request received | payload={}", dto);
         try {
-            return service.update(dto);
+            Firestation updated = service.update(dto);
+            log.info("PUT /firestation - success | address='{}' | station={}",
+                    updated.getAddress(), updated.getStation());
+            if (log.isDebugEnabled()) {
+                log.debug("PUT /firestation - response payload: {}", updated);
+            }
+            return updated;
         } catch (NoSuchElementException e) {
+            log.error("PUT /firestation - not found | reason={}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (Exception ex) {
+            log.error("PUT /firestation - failure | error={}", ex.toString(), ex);
+            throw ex;
         }
     }
 
@@ -70,7 +94,12 @@ public class FirestationCudController {
             @RequestParam(required = false) String address,
             @RequestParam(required = false) Integer station) {
 
+        log.info("DELETE /firestation - request received | address='{}' | station={}",
+                address, station);
+
+        // validation des paramètres exclusifs
         if ((address == null && station == null) || (address != null && station != null)) {
+            log.error("DELETE /firestation - bad request | reason=provide_either_address_or_station");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Provide either 'address' or 'station'");
         }
@@ -78,12 +107,20 @@ public class FirestationCudController {
         try {
             if (address != null) {
                 service.deleteByAddress(address);
+                log.info("DELETE /firestation - success | address='{}'", address);
             } else {
                 service.deleteByStation(station);
+                log.info("DELETE /firestation - success | station={}", station);
             }
             return ResponseEntity.noContent().build();
         } catch (NoSuchElementException e) {
+            log.error("DELETE /firestation - not found | address='{}' | station={} | reason={}",
+                    address, station, e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (Exception ex) {
+            log.error("DELETE /firestation - failure | address='{}' | station={} | error={}",
+                    address, station, ex.toString(), ex);
+            throw ex;
         }
     }
 }

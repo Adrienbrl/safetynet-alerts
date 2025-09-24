@@ -7,10 +7,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Contrôleur REST gérant les requêtes pour l'endpoint "/firestation".
  * Il permet de récupérer la liste des personnes couvertes par une caserne donnée ainsi que le nombre d'adultes et d'enfants.
  */
+@Slf4j
 @RestController
 @RequestMapping("/firestation")
 public class FirestationController {
@@ -36,8 +39,26 @@ public class FirestationController {
      */
     @GetMapping
     public FirestationCoverageDTO getPersonsByStation(@RequestParam int stationNumber) {
-        // Appel au service pour obtenir les personnes couvertes par la caserne
-        return firestationService.getPersonsCoveredByStation(stationNumber);
+        // --- Requête entrante (INFO)
+        log.info("GET /firestation - request received | station={}", stationNumber);
+
+        try {
+            FirestationCoverageDTO result = firestationService.getPersonsCoveredByStation(stationNumber);
+
+            // --- Réponse sortante (INFO)
+            log.info("GET /firestation - success | station={}", stationNumber);
+
+            // --- Détails (DEBUG)
+            if (log.isDebugEnabled()) {
+                log.debug("GET /firestation - response payload: {}", result);
+            }
+
+            return result;
+        } catch (Exception ex) {
+            // --- Erreur/exception (ERROR)
+            log.error("GET /firestation - failure | station={} | error={}", stationNumber, ex.toString(), ex);
+            throw ex; // on re-propage : aucun changement de comportement
+        }
     }
 }
 

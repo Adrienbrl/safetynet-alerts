@@ -7,12 +7,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 
 /**
  * Contrôleur REST gérant les requêtes pour l'endpoint "/flood/stations".
  * Il permet de récupérer les foyers (households) couverts par une ou plusieurs casernes.
  */
+@Slf4j
 @RestController
 public class FloodController {
 
@@ -38,12 +41,32 @@ public class FloodController {
     public ResponseEntity<FloodStationsResponseDTO> getHouseholdsByStations(
             @RequestParam("stations") List<Integer> stations) {
 
+        // --- Requête entrante (INFO)
+        log.info("GET /flood/stations - request received | stations={}", stations);
+
+        // 400 si la liste est absente ou vide
         if (stations == null || stations.isEmpty()) {
+            log.error("GET /flood/stations - bad request | reason=missing_or_empty_stations");
             return ResponseEntity.badRequest().build();
         }
 
-        FloodStationsResponseDTO response = floodService.getHouseholdsByStations(stations);
-        return ResponseEntity.ok(response);
+        try {
+            FloodStationsResponseDTO response = floodService.getHouseholdsByStations(stations);
+
+            // --- Réponse sortante (INFO)
+            log.info("GET /flood/stations - success | stations={}", stations);
+
+            // --- Détails (DEBUG)
+            if (log.isDebugEnabled()) {
+                log.debug("GET /flood/stations - response payload: {}", response);
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception ex) {
+            // --- Erreur/exception (ERROR)
+            log.error("GET /flood/stations - failure | stations={} | error={}", stations, ex.toString(), ex);
+            throw ex; // re-propage : pas de changement de comportement
+        }
     }
 }
 

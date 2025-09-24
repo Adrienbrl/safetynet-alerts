@@ -3,6 +3,7 @@ package com.safetynetalerts.safetynet_alerts.controller;
 import com.safetynetalerts.safetynet_alerts.dto.ChildDTO;
 import com.safetynetalerts.safetynet_alerts.service.ChildAlertService;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
  * Contrôleur REST gérant les requêtes pour l'endpoint "/childAlert".
  * Il permet de récupérer la liste des enfants et des autres membres du foyer vivant à une adresse donnée.
  */
+@Slf4j
 @RestController
 @RequestMapping("/childAlert")
 public class ChildAlertController {
@@ -35,8 +37,26 @@ public class ChildAlertController {
      */
     @GetMapping
     public List<ChildDTO> getChildrenByAddress(@RequestParam String address) {
-        // Appel au service pour obtenir la liste des enfants et autres membres
-        return childAlertService.getChildrenByAddress(address);
+        // --- Requête entrante (INFO)
+        log.info("GET /childAlert - request received | address='{}'", address);
+
+        try {
+            List<ChildDTO> result = childAlertService.getChildrenByAddress(address);
+
+            // --- Réponse sortante (INFO)
+            log.info("GET /childAlert - success | address='{}' | items={}", address, result.size());
+
+            // --- Détails/étapes (DEBUG)
+            if (log.isDebugEnabled()) {
+                log.debug("GET /childAlert - response payload: {}", result);
+            }
+
+            return result;
+        } catch (Exception ex) {
+            // --- Erreur/exception (ERROR)
+            log.error("GET /childAlert - failure | address='{}' | error={}", address, ex.toString(), ex);
+            throw ex; // on ne modifie pas le comportement : on re-propage
+        }
     }
 }
 
